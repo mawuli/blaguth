@@ -44,9 +44,14 @@ defmodule Blaguth do
     do: halt_with_login(conn, realm)
 
   def halt_with_login(conn, realm) do
-    Conn.put_resp_header(conn, "www-authenticate", "Basic realm=\"" <> realm <> "\"")
-    |> Conn.send_resp(401, "HTTP Basic: Access denied.\n")
+    conn
+    |> Conn.put_resp_header("www-authenticate", "Basic realm=\"" <> realm <> "\"")
+    |> Conn.send_resp(401, Poison.encode!(request_error_message))
     |> Conn.halt
+  end
+
+  defp request_error_message do
+    %{error: %{type: "unauthorized_request_error", message: "Invalid API Key provided"}}
   end
 
   defp split_creds(nil), do: []
